@@ -19,7 +19,7 @@
 % VCS:      github.com/rplab/cluster_kinetics
 %
 
-function [cluster_sizes,total_pop_arr,tvec,num_clusters_arr] = simulate_clusters_tau(growth_rate,aggregation_rate,expulsion_rate,fragmentation_rate,Tmax,n0,max_total_pop,tau,fragmentation_exponent,growth_noise_strength,growth_option,l_print_progress)
+function [cluster_sizes,total_pop_arr,tvec,num_clusters_arr] = simulate_clusters_tau(growth_rate,aggregation_rate,expulsion_rate,fragmentation_rate,Tmax,n0,max_total_pop,tau,fragmentation_exponent,growth_noise_strength,growth_option)
 
 %% default values for input parameters
 % rate of cluster growth
@@ -51,7 +51,6 @@ end
 if ~exist('n0','var')||isempty(n0)
     n0 = 10;
 end
-
 
 % carrying capacity
 if ~exist('max_total_pop','var')||isempty(max_total_pop)
