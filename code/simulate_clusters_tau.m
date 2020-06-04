@@ -184,22 +184,40 @@ for s = 2:num_time_points
         %(num clusters x 2) array of random ids. 
         agg_ids = ceil(numel(cluster_sizes).*rand(num_agg_events_to_happen,2));
         
-        % forbid clusters from aggregating with themselves 
-        agg_ids(diff(agg_ids,[],2)==0,:) = [];
-        
-        % only let clusters aggregate once per time step by identifying
-        % unique pairs
-        [~,unique_rows,~] = unique(agg_ids(:,2));
-        agg_ids = agg_ids(unique_rows,:);
-        agg_ids(ismember(agg_ids(:,2),agg_ids(:,1)),:) = [];
+%         % forbid clusters from aggregating with themselves 
+%         agg_ids(diff(agg_ids,[],2)==0,:) = [];
+%         
+%         % only let clusters aggregate once per time step by identifying
+%         % unique pairs
+%         [~,unique_rows,~] = unique(agg_ids(:,2));
+%         agg_ids = agg_ids(unique_rows,:);
+%         agg_ids(ismember(agg_ids(:,2),agg_ids(:,1)),:) = [];
         
         % loop over first clusters and add the size of the second cluster 
         for a = 1:size(agg_ids,1)
-            cluster_sizes(agg_ids(a,1)) = cluster_sizes(agg_ids(a,1)) + cluster_sizes(agg_ids(a,2));
+            
+            % if a cluster is chosen to aggregate with itself, draw again
+            ids_are_the_same = agg_ids(a,1)==agg_ids(a,2);
+            while ids_are_the_same
+                agg_ids(a,:) = ceil(numel(cluster_sizes).*rand(1,2));
+                ids_are_the_same = agg_ids(a,1)==agg_ids(a,2);
+            end
+            
+            % add the second cluster's size to the first cluster
+            cluster_sizes(agg_ids(a,1)) = cluster_sizes(agg_ids(a,1)) + cluster_sizes(agg_ids(a,2)); 
+            
+            % mark the second cluster with a NaN for removal later
+            % (removing now would require updating agg_ids).
+            cluster_sizes(agg_ids(a,2)) = NaN;
+
+            % in case the second cluster was chosen to aggregate again with
+            % another cluster, re-assign its agg_id to the first cluster's
+            agg_ids(agg_ids(:,2)==agg_ids(a,2),2) = agg_ids(a,1);
         end
         
         % remove second cluster from cluster_sizes array
-        cluster_sizes(agg_ids(:,2)) = [];
+        %cluster_sizes(agg_ids(:,2)) = [];
+        cluster_sizes(isnan(cluster_sizes)) = [];
         
         % udpate number of clusters array
         num_clusters_arr(s) = numel(cluster_sizes);
