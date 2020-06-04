@@ -180,64 +180,35 @@ for s = 2:num_time_points
     num_agg_events_to_happen = poissrnd(total_prob_rate_of_an_agg_event_happening*tau);
 
     if num_agg_events_to_happen > 0
-        % pick pairs of clusters randomly. first generate a 
-        %(num clusters x 2) array of random ids. 
-%        agg_ids = ceil(numel(cluster_sizes).*rand(num_agg_events_to_happen,2));
+        % generate a (num clusters x 2) array of random numbers to pick ids. 
+        these_random_numbers = rand(num_agg_events_to_happen,2);
         
-%         % forbid clusters from aggregating with themselves 
-%         agg_ids(diff(agg_ids,[],2)==0,:) = [];
-%         
-%         % only let clusters aggregate once per time step by identifying
-%         % unique pairs
-%         [~,unique_rows,~] = unique(agg_ids(:,2));
-%         agg_ids = agg_ids(unique_rows,:);
-%         agg_ids(ismember(agg_ids(:,2),agg_ids(:,1)),:) = [];
-        
+        % keep track of ids that can subsequently aggregate. for each agg
+        % event, the second cluster id will be removed from this list
         good_ids = 1:numel(cluster_sizes);
+        
         % loop over first clusters and add the size of the second cluster 
-        %for a = 1:size(agg_ids,1)
         for a = 1:num_agg_events_to_happen
             
-            first_agg_id = good_ids(ceil(numel(good_ids).*rand(1)));
-            good_ids_not_first_id = good_ids(good_ids~=first_agg_id);
-            
-            second_agg_id = good_ids_not_first_id(ceil(numel(good_ids_not_first_id).*rand(1)));
-            
-%             % if a cluster is chosen to aggregate with itself, draw again
-%             ids_are_the_same = agg_ids(a,1)==agg_ids(a,2);
-%             %one_cluster_is_nan = sum(isnan(cluster_sizes(agg_ids(a,:))))>0;
-%             while ids_are_the_same %|| one_cluster_is_nan
-%                 agg_ids(a,:) = good_ids(ceil(numel(good_ids).*rand(1,2)));
-%                 ids_are_the_same = agg_ids(a,1)==agg_ids(a,2);
-%                 %one_cluster_is_nan = sum(isnan(cluster_sizes(agg_ids(a,:))))>0;
-%             end
-%             
+            first_agg_id = good_ids(ceil(numel(good_ids).*these_random_numbers(a,1)));
+            good_ids_not_first_id = good_ids(good_ids~=first_agg_id);            
+            second_agg_id = good_ids_not_first_id(ceil(numel(good_ids_not_first_id).*these_random_numbers(a,2)));
+                      
             % add the second cluster's size to the first cluster
-            %cluster_sizes(agg_ids(a,1)) = cluster_sizes(agg_ids(a,1)) + cluster_sizes(agg_ids(a,2)); 
             cluster_sizes(first_agg_id) = cluster_sizes(first_agg_id) + cluster_sizes(second_agg_id);
            
             % mark the second cluster with a NaN for removal later
             % (removing now would require updating agg_ids).
-            %cluster_sizes(agg_ids(a,2)) = NaN;
             cluster_sizes(second_agg_id) = NaN;
-            
-            %good_ids(good_ids==agg_ids(a,2)) = [];
             good_ids(good_ids==second_agg_id) = [];
             
             if numel(good_ids)==1
                 break
             end
 
-            % in case the second cluster was chosen to aggregate again with
-            % another cluster, re-assign its agg_id to the first cluster's
-            %agg_ids(agg_ids==agg_ids(a,2)) = agg_ids(a,1);
-            %agg_ids(agg_ids(:,1)==agg_ids(a,2),1) = agg_ids(a,1);
-            %agg_ids(agg_ids(:,2)==agg_ids(a,2),2) = agg_ids(a,1);
-
         end
         
         % remove second cluster from cluster_sizes array
-        %cluster_sizes(agg_ids(:,2)) = [];
         cluster_sizes(isnan(cluster_sizes)) = [];
         
         % udpate number of clusters array
