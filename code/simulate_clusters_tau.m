@@ -143,7 +143,7 @@ for s = 2:num_time_points
             cluster_sizes(cluster_sizes<1) = [];
             
         case 'poisson'            
-            mean_num_growth_events = max(growth_rate.*tau.*cluster_sizes.^fragmentation_exponent.*(1-sum(cluster_sizes)./max_total_pop),0);
+            mean_num_growth_events = max(growth_rate.*tau.*cluster_sizes.*(1-sum(cluster_sizes)./max_total_pop),0);
             
             if growth_noise_strength==0     % determinstic discrete growth
                 cluster_sizes = cluster_sizes + round(mean_num_growth_events);
