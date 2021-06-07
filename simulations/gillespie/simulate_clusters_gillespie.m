@@ -34,13 +34,20 @@
 %           nu_F - (float) exponent determining how the fragmentation rate
 %                   scales with cluster size via (frag rate) = la*(cluster
 %                   size)^nu_F.
+%           nu_E - (float) exponent determining how the expulsion rate
+%                   scales with cluster size via (total explusion rate) = explusion_rate*(cluster
+%                   size)^nu_E.  
 %           max_total_pop - (float, int) carrying capacity
 %           lwritetxt - (logical) 0 for not writing to txt file, 1 for yes.
 %           txtdir - (str) full path to dir to save txt files
 %           txtname - (str) name of txt file
-%           nu_E - (float) exponent determining how the expulsion rate
-%                   scales with cluster size via (total explusion rate) = explusion_rate*(cluster
-%                   size)^nu_E.    
+%           (optional) reaction_label_arr - array containing history of which
+%                      reaction occurred at each time point. First collumn
+%                      is time, second collumn is reaction_id, for which
+%                      0=growth only, 1=expulsion, 2=aggregation, and
+%                      3=fragmentation. Include a 5th output arugment to
+%                      return this array.
+%        
 %
 % Outputs:  cluster_sizes - (1x(number of clusters) array of floats) sizes of all
 %                   clusters at the final time point
@@ -55,9 +62,8 @@
 %
 % Date:     Summer 2018 - first written
 %
-% VCS:      github.com/bschloma/gac
+% VCS:      github.com/rplab/cluster_kinetics
 %
-% Notes:    5/18/21 - added varargout for exporting reaction_id_arr.
 
 function [cluster_sizes,total_pop_arr,tvec,num_clumps_arr,varargout] = simulate_clusters_gillespie(growth_rate,aggregation_rate,expulsion_rate,fragmentation_rate,Tmax,n0,nu_A,nu_F,nu_E,max_total_pop,lwritetxt,txtdir,txtname)
 
