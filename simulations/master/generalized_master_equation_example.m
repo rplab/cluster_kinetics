@@ -45,7 +45,7 @@ if l_assemble
                    
         disp([num2str(i) ' of ' num2str(numel(nu_A))]);
         
-        [cn_cell{i}] = solve_cluster_model_master_eqn_final_only_nuA(cn0,Tmax,dt,r,beta,alpha(i),lambda,nu_F,nu_E,K,nu_A(i));
+        [cn_cell{i}] = solve_cluster_master_eqn(cn0,Tmax,dt,r,beta,alpha(i),lambda,nu_F,nu_E,K,nu_A(i));
                   
     end
     
