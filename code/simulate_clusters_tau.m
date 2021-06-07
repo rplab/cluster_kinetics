@@ -19,7 +19,7 @@
 % VCS:      github.com/rplab/cluster_kinetics
 %
 
-function [cluster_sizes,total_pop_arr,tvec,num_clusters_arr] = simulate_clusters_tau(growth_rate,aggregation_rate,expulsion_rate,fragmentation_rate,Tmax,n0,max_total_pop,tau,fragmentation_exponent,growth_noise_strength,growth_option)
+function [cluster_sizes,total_pop_arr,tvec,num_clusters_arr] = simulate_clusters_tau(growth_rate,aggregation_rate,expulsion_rate,fragmentation_rate,Tmax,n0,max_total_pop,tau,fragmentation_exponent,growth_noise_strength,growth_option,expulsion_exponent)
 
 %% default values for input parameters
 % rate of cluster growth
@@ -79,6 +79,12 @@ end
 % discrete ('poisson') or continuous 'gaussian' growth.
 if ~exist('growth_option','var')||isempty(growth_option)
     growth_option = 'poisson';
+end
+
+% expulsion exponent: 
+% prob rate of expel = expulsion_rate*(cluster_sizes)^expulsion_exponent
+if ~exist('expulsion_exponent','var')||isempty(expulsion_exponent)
+    expulsion_exponent = 0;
 end
 
 % shuffle random number generator
@@ -162,6 +168,7 @@ for s = 2:num_time_points
    %% fragmentation  
    % do by each cluster
    mean_num_frag_events_for_each_cluster = max(fragmentation_rate.*tau.*cluster_sizes.^fragmentation_exponent.*(1-sum(cluster_sizes)./max_total_pop),0);
+
    num_frag_events_for_each_cluster  = poissrnd(mean_num_frag_events_for_each_cluster,1,numel(cluster_sizes));
    
    % manually prevent clusters from fragmenting to zero or negative sizes
@@ -224,18 +231,27 @@ for s = 2:num_time_points
     end
     
     %% expulsion
-    % compute total number of expulsion events, then pick clusters randomly
-    total_prob_rate_of_explusion_event_happening = expulsion_rate*numel(cluster_sizes);
-    num_expulsion_events_to_happen = poissrnd(total_prob_rate_of_explusion_event_happening*tau);
+    
+    % do by each cluster
+    prob_expulsion_by_cluster = expulsion_rate.*tau.*cluster_sizes.^expulsion_exponent;
+    l_expel = prob_expulsion_by_cluster > rand(1,numel(cluster_sizes));
+    cluster_sizes(l_expel) = [];
+    num_clusters_arr(s) = numel(cluster_sizes);
+    total_pop_arr(s) = sum(cluster_sizes);
 
-    if num_expulsion_events_to_happen > 0        
-        expulsion_ids = unique(ceil(rand(1,num_expulsion_events_to_happen).*numel(cluster_sizes)));       
-        cluster_sizes(expulsion_ids) = [];
-             
-        % update arrays
-        num_clusters_arr(s) = numel(cluster_sizes);
-        total_pop_arr(s) = sum(cluster_sizes);
-    end
+% OLD
+%     % compute total number of expulsion events, then pick clusters randomly
+%     total_prob_rate_of_explusion_event_happening = expulsion_rate*numel(cluster_sizes);
+%     num_expulsion_events_to_happen = poissrnd(total_prob_rate_of_explusion_event_happening*tau);
+% 
+%     if num_expulsion_events_to_happen > 0        
+%         expulsion_ids = unique(ceil(rand(1,num_expulsion_events_to_happen).*numel(cluster_sizes)));       
+%         cluster_sizes(expulsion_ids) = [];
+%              
+%         % update arrays
+%         num_clusters_arr(s) = numel(cluster_sizes);
+%         total_pop_arr(s) = sum(cluster_sizes);
+%     end
     
     if isempty(cluster_sizes)
         return
